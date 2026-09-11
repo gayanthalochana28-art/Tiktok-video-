@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snapclip — TikTok Saver & Background Cutout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span>Snapclip</div>
+    <nav>
+      <a href="#downloader" onclick="showTab('downloader')">Video Saver</a>
+      <a href="#bgremove" onclick="showTab('bgremove')">Cutout</a>
+      <a href="#caption" onclick="showTab('caption')">Captions</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Save TikTok clips.<br>Cut out backgrounds.</h1>
+    <p>Paste a TikTok link to preview and save the clip without the watermark, lift a subject off its photo background, or turn a quick description into a title and hashtag set — all right in your browser.</p>
+  </section>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-downloader" onclick="showTab('downloader')">TikTok Video Saver</button>
+    <button class="tab" id="tab-bgremove" onclick="showTab('bgremove')">Background Cutout</button>
+    <button class="tab" id="tab-caption" onclick="showTab('caption')">Title & Hashtags</button>
+  </div>
+
+  <!-- TikTok Downloader -->
+  <div class="panel active" id="panel-downloader">
+    <div class="tool-card">
+      <div class="input-row">
+        <input type="text" id="tiktokUrl" placeholder="https://www.tiktok.com/@tharuu_pagee/video/..." value="https://www.tiktok.com/@tharuu_pagee">
+        <button class="action" id="fetchBtn" onclick="fetchTikTok()">Get video</button>
+      </div>
+      <div class="hint">Works with full video links (tiktok.com/@user/video/123...) and vm.tiktok.com short links.</div>
+      <div class="status" id="tkStatus"></div>
+
+      <div class="result" id="tkResult">
+        <img id="tkThumb" src="" alt="Video thumbnail">
+        <div class="meta">
+          <h3 id="tkTitle">—</h3>
+          <p id="tkAuthor">—</p>
+          <div class="dl-row">
+            <a class="dl-btn primary" id="tkNoWm" href="#" target="_blank">Download — no watermark</a>
+            <a class="dl-btn" id="tkHd" href="#" target="_blank">Download — HD</a>
+          </div>
+          <button class="copy-btn" style="margin-top:12px;" onclick="useVideoForCaption()">Generate a title &amp; hashtags from this video →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>Preview embed</b> — while a link is loaded above, the official TikTok embed for it renders here.
+      <div id="oembedBox" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="note" style="margin-top:14px;">
+      Only download videos you made yourself or have permission to reuse. This tool fetches
+      download links through a public third-party lookup service, not TikTok directly, so
+      results can occasionally fail or be rate-limited — if that happens, wait a moment and try again.
+    </div>
+  </div>
+
+  <!-- Background Remover -->
+  <div class="panel" id="panel-bgremove">
+    <div class="tool-card">
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <strong>Click to choose a photo</strong>
+        <p>or drag and drop a JPG / PNG here — processing happens on your device, nothing is uploaded</p>
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+      </div>
+      <div class="progress" id="bgProgressWrap" style="display:none;">
+        <div class="progress-bar" id="bgProgressBar"></div>
+      </div>
+      <div class="status" id="bgStatus"></div>
+
+      <div class="bg-result" id="bgResult">
+        <div class="compare">
+          <figure>
+            <div class="checker"><img id="bgOriginal" src=""></div>
+            <figcaption>Original</figcaption>
+          </figure>
+          <figure>
+            <div class="checker"><img id="bgOutput" src=""></div>
+            <figcaption>Background removed</figcaption>
+          </figure>
+        </div>
+        <div class="dl-row" style="margin-top:16px;">
+          <a class="dl-btn primary" id="bgDownload" href="#" download="cutout.png">Download PNG</a>
+        </div>
+      </div>
+    </div>
+    <div class="note">Runs entirely in your browser using an on-device model — your photo never leaves your device.</div>
+  </div>
+
+  <!-- Caption / Hashtag Generator -->
+  <div class="panel" id="panel-caption">
+    <div class="tool-card">
+      <label class="field-label" for="capDesc">What's in the video?</label>
+      <textarea id="capDesc" rows="4" placeholder="e.g. Morning routine making Sri Lankan milk tea, quick 20-second clip, cozy kitchen vibe" ></textarea>
+
+      <div class="cap-row">
+        <div class="cap-field">
+          <label class="field-label" for="capVibe">Vibe / niche (optional)</label>
+          <input type="text" id="capVibe" placeholder="comedy, food, travel, fitness…">
+        </div>
+        <div class="cap-field">
+          <label class="field-label" for="capCount">Hashtag count</label>
+          <select id="capCount">
+            <option value="8">8</option>
+            <option value="12" selected>12</option>
+            <option value="16">16</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="action" id="capBtn" onclick="generateCaption()" style="margin-top:18px;">Generate title & hashtags</button>
+      <div class="status" id="capStatus"></div>
+
+      <div class="cap-result" id="capResult">
+        <div class="cap-block">
+          <div class="cap-block-head">
+            <span>Title</span>
+            <button class="copy-btn" onclick="copyText('capTitleOut', this)">Copy</button>
+          </div>
+          <p id="capTitleOut"></p>
+        </div>
+        <div class="cap-block">
+          <div class="cap-block-head">
+            <span>Hashtags</span>
+            <button class="copy-btn" onclick="copyText('capTagsOut', this)">Copy</button>
+          </div>
+          <p id="capTagsOut" class="tags"></p>
+        </div>
+      </div>
+    </div>
+    <div class="note">Titles and hashtags are put together locally in your browser from a template and keyword-matching engine — nothing you type is sent anywhere. Click "Generate" again for a fresh variation.</div>
+  </div>
+
+  <footer>Snapclip · built for personal, non-commercial use</footer>
+</div>
+
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
